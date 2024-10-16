@@ -1,6 +1,7 @@
 This code should enable current sensing for the motors,setting of current stall value, setting the current sense resistor value and the voltage reference.
 It will also be possible to write statistics to a sd card file if there's a GPS or time server available.
 It's written by chatgpt because I have severe problems coding due to dyscalculia,  and that also affects programming.
+The chips used is 2X DRV8251A.
 
 The code will be organized as follows:
 
