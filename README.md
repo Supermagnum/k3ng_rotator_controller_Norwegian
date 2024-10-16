@@ -75,4 +75,6 @@ I will donate parts, units, or specially customized software for DXpeditions.  E
 
 Please consult [this page](https://blog.radioartisan.com/support-for-k3ng-projects/) for support information.  Feature requests and bugs are documented and tracked on [GitHub](https://github.com/k3ng/k3ng_rotator_controller/issues).
 
+Norwegian language and ADAFRUIT_LSM303 sensor has been enabled in this repository.
+
 Please note that I do this work in my spare time as I can and I am not a professional developer, however I play one on TV.  I do my best to answer support requests,  however I don’t like having to answer questions for items that are explained in the [documentation](https://github.com/k3ng/k3ng_rotator_controller/wiki).  I do maintain a list of [feature requests](https://github.com/k3ng/k3ng_rotator_controller/issues).  Development items are prioritized by me based on the level of difficulty and what I’m interested in.  I welcome code contributions, code testing, bug reports, and any help you can provide.  This can even be helping with [documentation](https://github.com/k3ng/k3ng_rotator_controller/wiki) or providing support to others on the [Radio Artisan discussion group](https://groups.yahoo.com/neo/groups/radioartisan/info).
