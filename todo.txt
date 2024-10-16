@@ -1,45 +1,69 @@
-A subroutine for the K3NG rotator controller that implements the described functionality, we will break the task into three parts:1. Current Sensing and Stall Detection: We will create a subroutine that checks the current draw of the azimuth and elevation motors using the DRV8251A driver, and stops the motor if the current exceeds the set threshold for a specified amount of time.
-2. Logging to SD Card: We will add the functionality to log data to an SD card if a GPS or time server is available. The data will include current sensed, duration, and the timestamp in UTC+0.
+This code should enable current sensing for the motors,setting of current stall value, setting the current sense resistor value and the voltage reference.
+It will also be possible to write statistics to a sd card file if there's a GPS or time server available.
+It's written by chatgpt because I have severe problems coding due to dyscalculia,  and that also affects programming.
+
+The code will be organized as follows:
+
+1. Current Sensing and Stall Detection Subroutine: Detects if azimuth or elevation motors have stalled based on a configurable current value and time limit.
 
 
-3. Placement of Code and Configuration: We will detail where to place each part of the code, such as configuration values in rotator_features.h, and implementation code in k3ng_rotator_controller.ino.
+2. SD Card Logging: Logs current data to an SD card with timestamps in UTC+0 when available, using GPS or a time server.
+
+
+3. Placement of Code Snippets: Clearly specifies where each code section should be placed in files like rotator_features.h and k3ng_rotator_controller.ino.
 
 
 
 Part 1: Current Sensing and Stall Detection
 
-Subroutine Implementation
+1.1 Code Snippets for Current Sensing
 
-Add the following code snippet to the k3ng_rotator_controller.ino file. This code will read the current values, check against the configurable limits, and stop the motor if the limit is exceeded.
+Configurations in rotator_features.h
 
-// Include necessary libraries at the top of k3ng_rotator_controller.ino
+Add the following lines to define configurable parameters for current sensing, time limits, and the default settings for stall detection:
+
+// Current sensing configuration values
+#define DEFAULT_VREF 3.3             // Default reference voltage in volts
+#define DEFAULT_RIPROPI 1310         // RIPROPI resistor value in ohms
+#define DEFAULT_AIPROPI 1575         // AIPROPI sensitivity in μA/A
+#define AZIMUTH_STALL_TIME_LIMIT 2000 // Stall time limit for azimuth motor in milliseconds
+#define ELEVATION_STALL_TIME_LIMIT 2000 // Stall time limit for elevation motor in milliseconds
+#define ENABLE_ELEVATION true        // Set to true if elevation motor is enabled
+#define ENABLE_AZIMUTH true          // Set to true if azimuth motor is enabled
+
+These values can be adjusted based on the system requirements.
+
+Implementation in k3ng_rotator_controller.ino
+
+Place the following code in the k3ng_rotator_controller.ino file to handle stall detection and stopping of the motors:
+
 #include <Arduino.h>
 
 // Global variables for current monitoring
-float vref = 3.3; // Default reference voltage
-float ripropi = 1310.0; // RIPROPI resistor value in ohms
-float aipropi = 1575.0; // AIPROPI value in μA/A
+float vref = DEFAULT_VREF; // Reference voltage
+float ripropi = DEFAULT_RIPROPI; // RIPROPI resistor value in ohms
+float aipropi = DEFAULT_AIPROPI; // AIPROPI value in μA/A
 float itrip = 0.0; // Calculated trip current limit in Amps
+
 unsigned long stallStartTimeAzimuth = 0;
 unsigned long stallStartTimeElevation = 0;
 bool azimuthStalled = false;
 bool elevationStalled = false;
-bool currentLoggingEnabled = false;
 
-// Function to calculate ITRIP
+// Function to calculate ITRIP value based on VREF and RIPROPI
 void calculateItrip() {
     itrip = (vref / ripropi) * (1 / (aipropi / 1000000.0));
 }
 
-// Function to check the current sensed from DRV8251A for a motor
-void checkMotorStall(int current_mA, unsigned long &stallStartTime, bool &stalled, int motorType) {
-    if (current_mA > (itrip * 1000)) { // current_mA is in milliamps, itrip in Amps
+// Function to check if a motor is stalled
+void checkMotorStall(int current_mA, unsigned long &stallStartTime, bool &stalled, int motorType, unsigned long timeLimit) {
+    if (current_mA > (itrip * 1000)) { // Check if current exceeds threshold
         if (stallStartTime == 0) {
             stallStartTime = millis();
         }
-        else if (millis() - stallStartTime > STALL_TIME_LIMIT) {
+        else if (millis() - stallStartTime > timeLimit) {
             stalled = true;
-            stopMotor(motorType); // Custom function to stop the motor (implement as needed)
+            stopMotor(motorType); // Function to stop the motor (0 = Azimuth, 1 = Elevation)
             displayStallInfo(motorType, current_mA);
         }
     } else {
@@ -49,43 +73,63 @@ void checkMotorStall(int current_mA, unsigned long &stallStartTime, bool &stalle
 
 // Function to display stall information on the display
 void displayStallInfo(int motorType, int current_mA) {
-    if (motorType == 0) {
-        Serial.print("Azimuth motor stalled. Current sensed: ");
-    } else {
-        Serial.print("Elevation motor stalled. Current sensed: ");
-    }
+    Serial.print(motorType == 0 ? "Azimuth" : "Elevation");
+    Serial.print(" motor stalled. Current sensed: ");
     Serial.print(current_mA);
     Serial.println(" mA");
 }
 
-Placement in rotator_features.h
+Motor Stop Function
 
-Add the following configurable parameters to the rotator_features.h file:
+Create a function to stop the relevant motor:
 
-// Current sensing configuration values
-#define DEFAULT_VREF 3.3             // Default VREF in volts
-#define DEFAULT_RIPROPI 1310         // RIPROPI resistor value in ohms
-#define DEFAULT_AIPROPI 1575         // AIPROPI value in μA/A
-#define STALL_TIME_LIMIT 2000        // Time in milliseconds to detect stall
-
-Initialization Code
-
-In the setup section of the k3ng_rotator_controller.ino, initialize the current monitoring setup:
-
-void setup() {
-    // Other setup code...
-    Serial.begin(9600); // Initialize serial communication
-    calculateItrip();   // Calculate the current trip threshold value based on default parameters
+void stopMotor(int motorType) {
+    if (motorType == 0) {
+        // Code to stop azimuth motor
+        Serial.println("Azimuth motor stopped.");
+    } else {
+        // Code to stop elevation motor
+        Serial.println("Elevation motor stopped.");
+    }
 }
 
-Part 2: Logging to SD Card with GPS or Time Server
+1.2 Initialization Code
 
-SD Card Initialization
+Add the following code to the setup() function in k3ng_rotator_controller.ino to initialize current sensing:
 
-Add this code to initialize the SD card in the setup() function of k3ng_rotator_controller.ino:
+void setup() {
+    Serial.begin(9600); // Initialize serial communication for debugging
+    calculateItrip();   // Calculate the trip current threshold based on default parameters
+
+    // Other initialization code...
+}
+
+1.3 Integration into Main Loop
+
+Modify the main loop to include stall detection checks:
+
+void loop() {
+    // Example current values read from analog sensors (replace with actual sensor readings)
+    int azimuthCurrent_mA = readAzimuthCurrent(); // Function to read azimuth current
+    int elevationCurrent_mA = readElevationCurrent(); // Function to read elevation current
+
+    if (ENABLE_AZIMUTH) {
+        checkMotorStall(azimuthCurrent_mA, stallStartTimeAzimuth, azimuthStalled, 0, AZIMUTH_STALL_TIME_LIMIT);
+    }
+
+    if (ENABLE_ELEVATION) {
+        checkMotorStall(elevationCurrent_mA, stallStartTimeElevation, elevationStalled, 1, ELEVATION_STALL_TIME_LIMIT);
+    }
+}
+
+Part 2: SD Card Logging for Current Sensing
+
+2.1 SD Card Initialization
+
+Include the SD card initialization at the beginning of k3ng_rotator_controller.ino:
 
 #include <SD.h>
-#define SD_CHIP_SELECT_PIN 10  // Set the appropriate SD card chip select pin
+#define SD_CHIP_SELECT_PIN 10  // Define the chip select pin for your SD card module
 
 void initializeSDCard() {
     if (!SD.begin(SD_CHIP_SELECT_PIN)) {
@@ -95,21 +139,22 @@ void initializeSDCard() {
     }
 }
 
-Call initializeSDCard() in the setup block:
+Call this function in the setup() section:
 
 initializeSDCard();
 
-Logging Functionality
+2.2 Logging to SD Card
 
-Add the following code to log the current sensed and time data to a CSV file:
+Add the logging function to store data in a CSV format with timestamps:
+
+bool currentLoggingEnabled = true; // Set to true to enable logging
 
 void logCurrentToSD(int motorType, int current_mA, unsigned long durationMillis) {
     if (currentLoggingEnabled && SD.begin(SD_CHIP_SELECT_PIN)) {
         File dataFile = SD.open("current_log.csv", FILE_WRITE);
 
         if (dataFile) {
-            // Get UTC timestamp from GPS or time server here
-            String timestamp = getUTCTimestamp(); // Placeholder function, implement as required
+            String timestamp = getUTCTimestamp(); // Placeholder function for UTC time
 
             dataFile.print(timestamp);
             dataFile.print(",");
@@ -126,70 +171,51 @@ void logCurrentToSD(int motorType, int current_mA, unsigned long durationMillis)
 }
 
 String getUTCTimestamp() {
-    // Placeholder for getting GPS or time server UTC timestamp.
-    // Replace with actual function code to get time.
+    // Placeholder code to retrieve UTC timestamp from GPS or time server
     return "2024-10-16T00:00:00Z";
 }
 
-Add the ability to enable or disable logging by setting the currentLoggingEnabled variable in rotator_features.h:
+2.3 Integration into Main Loop for Logging
 
-#define ENABLE_CURRENT_LOGGING true  // Set to true to enable SD logging
+Add a condition to log data if a motor stalls in the main loop:
 
-Initialize it in the setup function:
+if (azimuthStalled) {
+    logCurrentToSD(0, azimuthCurrent_mA, millis() - stallStartTimeAzimuth);
+}
 
-currentLoggingEnabled = ENABLE_CURRENT_LOGGING;
+if (elevationStalled) {
+    logCurrentToSD(1, elevationCurrent_mA, millis() - stallStartTimeElevation);
+}
 
-Part 3: Placement of Code and Integration Instructions
+Part 3: Placement of Code Snippets
 
 1. rotator_features.h:
 
-Add configuration values like reference voltage, RIPROPI resistor value, and current sensing settings.
+Place the configurable values for current limits, resistor values, time limits, and motor enable flags.
+
+Example: #define DEFAULT_VREF 3.3
 
 
 
 2. k3ng_rotator_controller.ino:
 
-Include the setup code to initialize and configure the current sensing parameters.
+Place the functions for stall detection, SD card logging, and motor control.
 
-Place the current sensing and motor stall detection logic within the main loop of the program.
+Initialization code goes in the setup() function.
 
-Ensure that the SD card and logging functions are correctly called if enabled.
-
-
+The main loop includes the stall detection and logging calls.
 
 
-Main Loop Integration Example:
 
-In the main loop, add the stall detection check for both azimuth and elevation motors:
-
-void loop() {
-    // Example current values read from sensors (replace with actual analog reads)
-    int azimuthCurrent_mA = readAzimuthCurrent(); // Custom function to read azimuth current
-    int elevationCurrent_mA = readElevationCurrent(); // Custom function to read elevation current
-
-    checkMotorStall(azimuthCurrent_mA, stallStartTimeAzimuth, azimuthStalled, 0);
-    checkMotorStall(elevationCurrent_mA, stallStartTimeElevation, elevationStalled, 1);
-
-    // Logging logic (if motor stalled)
-    if (azimuthStalled) {
-        logCurrentToSD(0, azimuthCurrent_mA, millis() - stallStartTimeAzimuth);
-    }
-    if (elevationStalled) {
-        logCurrentToSD(1, elevationCurrent_mA, millis() - stallStartTimeElevation);
-    }
-}
 
 Summary
 
-1. Configurable values are placed in rotator_features.h.
+Configurable Parameters: Added to rotator_features.h for easy adjustment.
+
+Core Logic: Implemented in k3ng_rotator_controller.ino for current sensing, stall detection, and logging.
+
+SD Card Initialization and Logging: Properly integrated into the setup and loop sections.
 
 
-2. Core logic and function implementations are added to k3ng_rotator_controller.ino.
-
-
-3. SD card logging setup is also in k3ng_rotator_controller.ino.
-
-
-
-This structure ensures a clean and modular implementation for monitoring, logging, and handling motor stalls in the K3NG rotator controller.
+This structure ensures that the code is modular, well-organized, and easy to configure for your specific use case.
 
