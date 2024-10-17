@@ -61,7 +61,7 @@ Here's an example implementation of the `detectMotorStall()` and `logStatistics(
 #define EL_MOTOR_STALLED false
 #define AZ_MOTOR_CURRENT_SENSE_PIN A0
 #define EL_MOTOR_CURRENT_SENSE_PIN A1
-#define REFERENCE_VOLTAGE 5.0  // volts
+#define REFERENCE_VOLTAGE 3.3  // volts
 #define RIPROPI_RESISTOR_OHMS 1000.0  // ohms
 #define LOGGING_ENABLED true
 #define SD_CARD_CS_PIN 10
