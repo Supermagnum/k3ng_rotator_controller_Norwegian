@@ -1,4 +1,12 @@
-To implement the sub routine for detecting stalled motors using dual DRV8251A and logging statistics, you can follow these steps:
+Datasheet for the two motor drivers,- that has current monitoring and thermal shutdown.
+There also is some mathematical formulas in here:
+https://www.ti.com/lit/ds/symlink/drv8251a.pdf?ts=1729018988015&ref_url=https%253A%252F%252Fwww.ti.com%252Fmotor-drivers%252Fbrushed-dc-bdc-drivers%252Fproducts.html
+
+Why: monitoring how much current a motor draws over time may reveal developing issues like rotor bearing failure, wiring going bad. It will also stop the motor if the rotor has reached its mechanical rotation limits.
+
+You can find the stall current by disconnecting the motor and measuring the winding resistance.  Turn the motor by hand looking for the lowest resistance.  The stall current is the applied voltage ( example 30V ) divided by the (lowest) winding resistance.
+
+To implement the sub routine for detecting stalled motors using dual DRV8251A and logging statistics, this must be done:
 
 1. Add the necessary variables and constants to the `rotator_features.h` file:
    - `AZ_MOTOR_CURRENT_LIMIT`: Maximum allowed current for the azimuth motor in miliamperes.
@@ -9,7 +17,7 @@ To implement the sub routine for detecting stalled motors using dual DRV8251A an
    - `AZ_MOTOR_CURRENT_SENSE_PIN`: Pin number for measuring the azimuth motor current.
    - `EL_MOTOR_CURRENT_SENSE_PIN`: Pin number for measuring the elevation motor current.
    - `REFERENCE_VOLTAGE`: Reference voltage for the current sense amplifier in volts.
-   - `RIPROPI_RESISTOR_OHMS`: Value of the RIPROPI resistor in ohms.
+   - `RIPROPI_RESISTOR_OHMS`: Value of the RIPROPI resistors in ohms. There is one per driver, they may be of different value if the motors has different stall current values.
    - `LOGGING_ENABLED`: Boolean variable to enable or disable logging.
    - `SD_CARD_CS_PIN`: Pin number for the SD card chip select.
 
@@ -23,7 +31,7 @@ To implement the sub routine for detecting stalled motors using dual DRV8251A an
 
 4. Create a function `detectMotorStall()` that performs the following steps:
    - Read the current sense values for both azimuth and elevation motors.
-   - Calculate the actual current values using the reference voltage and RIPROPI resistor value.
+   - Calculate the actual current values using the reference voltage and RIPROPI resistors value.
    - Check if the current values exceed the respective limits and the motor has not been stalled before.
    - If a motor's current exceeds its limit and the motor has not been stalled before, check if the stall time limit has been exceeded.
      - If the stall time limit has been exceeded, stop the motor and set the respective stall flag to true.
