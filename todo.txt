@@ -44,13 +44,16 @@ To implement the sub routine for detecting stalled motors using dual DRV8251A an
 
 6. Create a function `logStatistics()` that performs the following steps:
    - Check if logging is enabled.
-   - If logging is enabled, open the SD card file in append mode.
+   - check if either a time server ( internet) or a GPS is available.
+Correct the time.
+   - If logging is enabledopen the SD card file in append mode.
    - Write the current sensed, stall status, and timestamp (converted to UTC+0) to the SD card file in CSV format.
    - Close the SD card file.
 
 7. Call the `logStatistics()` function periodically (e.g., every minute) to log the statistics.
 
 8. Maybe put the necessary variables and constants in a file named stalldetection.h ?
+RIPROPI_RESISTOR_OHMS_AZ and RIPROPI_RESISTOR_OHMS_EL?
 
 Here's an example implementation of the `detectMotorStall()` and `logStatistics()` functions in Arduino:
 
