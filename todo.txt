@@ -1,10 +1,12 @@
+Why: monitoring how much current a motor draws over time may reveal developing issues like rotor bearing failure, wiring going bad. It will also stop the motor if the rotor has reached its mechanical rotation limits.
+
+You can find the stall current by disconnecting the motor and measuring the winding resistance.  Turn the motor by hand looking for the lowest resistance.  The stall current is the applied voltage ( example 30V ) divided by the (lowest) winding resistance.
+
+
 Datasheet for the two motor drivers,- that has current monitoring and thermal shutdown.
 There also is some mathematical formulas in here:
 https://www.ti.com/lit/ds/symlink/drv8251a.pdf?ts=1729018988015&ref_url=https%253A%252F%252Fwww.ti.com%252Fmotor-drivers%252Fbrushed-dc-bdc-drivers%252Fproducts.html
 
-Why: monitoring how much current a motor draws over time may reveal developing issues like rotor bearing failure, wiring going bad. It will also stop the motor if the rotor has reached its mechanical rotation limits.
-
-You can find the stall current by disconnecting the motor and measuring the winding resistance.  Turn the motor by hand looking for the lowest resistance.  The stall current is the applied voltage ( example 30V ) divided by the (lowest) winding resistance.
 
 To implement the sub routine for detecting stalled motors using dual DRV8251A and logging statistics, this must be done:
 
@@ -47,6 +49,8 @@ To implement the sub routine for detecting stalled motors using dual DRV8251A an
    - Close the SD card file.
 
 7. Call the `logStatistics()` function periodically (e.g., every minute) to log the statistics.
+
+8. Maybe put the necessary variables and constants in a file named stalldetection.h ?
 
 Here's an example implementation of the `detectMotorStall()` and `logStatistics()` functions in Arduino:
 
