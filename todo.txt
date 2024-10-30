@@ -230,3 +230,6 @@ SD Card Initialization and Logging: Properly integrated into the setup and loop 
 
 This structure ensures that the code is modular, well-organized, and easy to configure for your specific use case.
 
+There are more things that could be implemented,- such as getting and setting the time from GPS or internet,- and updating the TLE file automatically.
+Look in https://github.com/Supermagnum/k3ng_rotator_controller_Norwegian/tree/master/Todo-files 
+
