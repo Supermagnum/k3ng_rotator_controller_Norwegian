@@ -1,0 +1,54 @@
+
+
+1.
+Open a terminal and navigate to the directory where you want to store the TLE file. For example, if you want to store it in a folder named "tle", run the following command:
+
+cd /path/to/tle
+
+2.
+Create a bash script named fetch_tle.sh with the following content:
+
+#!/bin/bash
+
+# Check if the TLE file exists
+if [ -f dailytle.txt ]; then
+  # Get the modification date of the TLE file
+  last_modified=$(stat -c %Y dailytle.txt)
+
+  # Calculate the current date and time in seconds since the epoch
+  current_date=$(date +%s)
+
+  # Check if the TLE file is out of date (24 hours = 86400 seconds)
+  if [ $(($current_date - $last_modified)) -gt 86400 ]; then
+    # Fetch the TLE file from the AMSAT website
+    wget -O dailytle.txt https://www.amsat.org/tle/dailytle.txt
+  fi
+else
+  # Fetch the TLE file from the AMSAT website
+  wget -O dailytle.txt https://www.amsat.org/tle/dailytle.txt
+fi
+
+3.
+Make the script executable by running the following command:
+
+chmod +x fetch_tle.sh
+
+
+4.
+Open the cron table by running the following command:
+
+crontab -e
+
+Add the following lines to the cron table to run the script every 24 hours and upon boot:
+
+0 0 * * * /path/to/tle/fetch_tle.sh
+@reboot /path/to/tle/fetch_tle.sh
+
+
+Replace /path/to/tle with the actual path to the "tle" folder.
+
+6.
+Save and close the cron table.
+7.
+The cron job will now fetch the TLE file from the AMSAT website and place it in the "tle" folder every 24 hours, and it will also download the file if it's out of date upon boot.
+
