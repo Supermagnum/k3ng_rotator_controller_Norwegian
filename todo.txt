@@ -3,6 +3,8 @@ It will also be possible to write statistics to a sd card file if there's a GPS 
 It's written by chatgpt because I have severe problems coding due to dyscalculia,  and that also affects programming.
 The chips used is 2X DRV8251A.
 
+You can find the stall current by disconnecting the motor and measuring the winding resistance.  Turn the motor by hand looking for the lowest resistance.  The stall current is the applied voltage divided by the (lowest) winding resistance.
+
 The code will be organized as follows:
 
 1. Current Sensing and Stall Detection Subroutine: Detects if azimuth or elevation motors have stalled based on a configurable current value and time limit.
